@@ -1,0 +1,1 @@
+# app-estrat-gias-roleta
