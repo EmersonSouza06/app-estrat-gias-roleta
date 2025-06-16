@@ -1,0 +1,167 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Link, Target, AlertTriangle, Wand2, ArrowRight } from "lucide-react";
+
+const pullingData = {
+  '1': {
+    tendencies: ["Puxa número 3 e seus vizinhos (33, 16, 24, 20, 14, 31)"],
+    properties: ["Próprio número 1 e seus vizinhos (33, 16, 24, 20, 14, 31)"],
+    neighbors: ["Puxa o 36 e seus vizinhos (11, 30, 8, 13, 27, 5)"]
+  },
+  '2': {
+    tendencies: ["Puxar o próprio 22, ou os vizinhos do 22 (9, 31, 14, 18, 29, 7)"],
+    properties: ["Probabilidade de puxar o próprio 2, ou seus vizinhos (25, 17, 34 ou 21, 4, 19)"],
+    neighbors: ["Pode puxar o 25, ou os vizinhos do 25 (17, 34, 3, 21, 4, 19)"]
+  },
+  '3': {
+    tendencies: ["Puxa número 3 e seus vizinhos (33, 16, 24, 20, 14, 31)"],
+    properties: ["Puxar os números 0, 3, 15, 33, 35"],
+    neighbors: ["Pode puxar os números próximos a ele mesmo (26, 0, 32, 35, 12, 28)"]
+  },
+  '4': {
+    tendencies: ["Querer puxar 24 ou de números vizinhos (5, 10, 23, 16, 33, 1)"],
+    properties: ["Pode puxar 19, e números vizinhos (15, 32, 0, 4, 21, 2, 25)"],
+    neighbors: ["Pode puxar 19, e números vizinhos (15, 32, 0, 4, 21, 2, 25)"]
+  },
+  '5': {
+    tendencies: ["Querer puxar 24 ou números vizinhos (5, 10, 23, 16, 33, 1)"],
+    properties: ["Pode puxar 19 e números vizinhos (15, 32, 0, 4, 21, 2, 25)"],
+    neighbors: ["Pode puxar 19 e números vizinhos (15, 32, 0, 4, 21, 2, 25)"]
+  },
+  '6': {
+    tendencies: ["Puxar o próprio número 7 ou os números vizinhos do 7 (28, 12, 35, 3, 26, 0, 32)"],
+    properties: ["Puxar o número 7, ou os vizinhos do 7 (28, 12, 35, 3, 26, 0, 32)"],
+    neighbors: ["Puxar número 8, 9, ou os vizinhos (30, 11, 20, 22, 18, 29)"]
+  },
+  '7': {
+    tendencies: ["Puxar o 27, ou o próprio 7, ou seus números vizinhos (28, 12, 35, 3, 26, 0, 32)"],
+    properties: ["Pode puxar os números vizinhos (29, 18, 22, 5, 17, 34, 6)"],
+    neighbors: ["Pode puxar número 5, ou os números vizinhos do 5 (10, 23, 8, 11, 30, 24)"]
+  },
+  '8': {
+    tendencies: ["Puxa muito 11, 8, 30 e 36"],
+    properties: ["Pode puxar o 28, 15, 13 e 6, 2, 5"],
+    neighbors: ["Pode puxar o número 1, 16, 34, 18, 32, 25, 29, 35"]
+  },
+  '9': {
+    tendencies: ["Puxa ele mesmo, e os números próximos (31, 14, 20, 22, 18, 29)"],
+    properties: ["Puxa 19, e os números vizinhos do 19 (4, 21, 2, 25, 17, 34)"],
+    neighbors: ["Pode puxar 27, e também vizinhos do 27 (13, 36, 11, 30, 8, 1)"]
+  },
+  '10': {
+    tendencies: ["Pode puxar o 12, ou números do 12 (28, 7, 29, 9, 31, 14)"],
+    properties: ["Pode puxar 6, 13, 33, 18, 32, e 11, 16, 24, 15, 31"],
+    neighbors: ["Jogadas limitadas para o número 10"]
+  },
+  '11': {
+    tendencies: ["Puxar o próprio 11 ou o número 8, e os vizinhos (30, 8, 23, 10, 5, 24, 16, 33)"],
+    properties: ["Pode puxar 14, 34, 20, 17, 15, 5, 18, 25, 4"],
+    neighbors: ["Pode puxar 3, 6, 2, 1, 23, 10, 18, 12, 33"]
+  },
+  '12': {
+    tendencies: ["Puxar 9, 32, 17, 7, 2, 20, 34, 4"],
+    properties: ["Puxar 24, 16, 25, 18, 26, 30, 6"],
+    neighbors: ["Puxar 14, 11, 21, 10, 35, 28, 9, 33"]
+  }
+};
+
+export default function PullingNumbersCalculator({ lastNumbers }) {
+  const [selectedNumber, setSelectedNumber] = useState('1');
+  const [analysis, setAnalysis] = useState(null);
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const lastNum = lastNumbers.split(',').map(n => n.trim()).filter(Boolean).pop();
+      if (lastNum && pullingData[lastNum]) {
+        setSelectedNumber(lastNum);
+      }
+    }
+  }, [lastNumbers]);
+  
+  useEffect(() => {
+    setAnalysis(pullingData[selectedNumber]);
+  }, [selectedNumber]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Link className="w-5 h-5" />
+            Números que Puxam Outros
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-zinc-300 text-sm">
+            Esta é uma das estratégias mais detalhadas. Cada número possui uma tendência de "puxar" outros números específicos. 
+            Selecione um número para ver suas tendências.
+          </p>
+          <div>
+            <label className="text-sm font-medium text-zinc-300 mb-2 block">Selecione o Número que Saiu</label>
+            <Select value={selectedNumber} onValueChange={setSelectedNumber}>
+              <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-zinc-100">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-zinc-900 border-zinc-700">
+                {Object.keys(pullingData).map(num => (
+                  <SelectItem key={num} value={num} className="text-zinc-100 focus:bg-zinc-800">
+                    Número {num}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardContent>
+      </Card>
+
+      {analysis && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2">
+              <Wand2 className="w-5 h-5" />
+              Análise para o Número {selectedNumber}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {Object.entries(analysis).map(([key, value]) => (
+              <div key={key} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                <h3 className="capitalize text-lg font-semibold text-blue-300 mb-2">{key}</h3>
+                {value.map((desc, index) => (
+                  <div key={index} className="flex items-start gap-2 text-zinc-300">
+                    <ArrowRight className="w-4 h-4 mt-1 text-blue-400 shrink-0" />
+                    <p>{desc}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Observações Importantes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-zinc-300 text-sm">
+          <p>
+            Análises sem utilizar números vizinhos são possíveis, mas o recomendado é sempre utilizar 
+            pelo menos <strong>2 vizinhos para cada lado</strong> na Racetrack.
+          </p>
+          <p>
+            <strong>Nunca jogue em uma única tendência.</strong> Se for fazer marcações em qualquer nova análise, 
+            evite ficar desmontando jogadas anteriores.
+          </p>
+          <p>
+            Roleta é questão de <strong>paciência</strong>. Respeite seu lucro e volte outra hora caso não esteja 
+            conseguindo ter um lucro significativo.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

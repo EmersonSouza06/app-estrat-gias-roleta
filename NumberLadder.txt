@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { TrendingUp, Target, AlertTriangle } from "lucide-react";
+
+export default function NumberLadderCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+
+  const getTerminalNumbers = (terminal) => Array.from({length: 4}, (_, i) => terminal + i * 10).filter(n => n <= 36 && n >= (terminal === 0 ? 0 : 1));
+
+  const analyzeLadder = (numbers) => {
+    const recs = [];
+    if (numbers.length < 2) return { recs };
+    
+    // Padrão escada crescente: 1, 2...
+    if (numbers[numbers.length - 2] === 1 && numbers[numbers.length - 1] === 2) {
+      recs.push({
+        type: 'crescente_1_2',
+        description: `Padrão de escada crescente (1, 2) detectado. A tendência é vir um terminal "3".`,
+        numbers: getTerminalNumbers(3),
+        confidence: 80
+      });
+    }
+
+    // Padrão escada genérico: x, x+1...
+    const last = numbers[numbers.length - 1];
+    const secondLast = numbers[numbers.length - 2];
+    if (last === secondLast + 1) {
+      const nextTerminal = (last + 1) % 10;
+      recs.push({
+        type: 'crescente_generico',
+        description: `Padrão de escada (${secondLast}, ${last}) detectado. Tendência de vir um terminal "${nextTerminal}".`,
+        numbers: getTerminalNumbers(nextTerminal),
+        confidence: 75
+      });
+    }
+
+    // Proteção com base na imagem (14, 5, ... -> repetiu 5 -> terminais 4 e 6)
+    if (numbers.length >= 2 && numbers[numbers.length-1] === numbers[numbers.length-3]) {
+        const repeatedNum = numbers[numbers.length-1];
+        const before = repeatedNum - 1 >= 0 ? (repeatedNum-1) % 10 : 9;
+        const after = (repeatedNum + 1) % 10;
+        recs.push({
+            type: 'protecao_repeticao',
+            description: `Proteção por repetição: O número ${repeatedNum} repetiu. Jogue nos terminais anterior (${before}) e posterior (${after}).`,
+            numbers: [...getTerminalNumbers(before), ...getTerminalNumbers(after)],
+            confidence: 70
+        });
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeLadder(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5" />
+            Escada de Números
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm">Esta estratégia busca por padrões de números em sequência (escada), como 1,2,3. A formação da escada cria uma alta probabilidade de vir um terminal específico.</p>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+ 

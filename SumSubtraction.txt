@@ -1,0 +1,237 @@
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Calculator, Target, AlertTriangle, Plus, Minus } from "lucide-react";
+
+export default function SumSubtractionCalculator({ lastNumbers }) {
+  const [calculations, setCalculations] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+
+  const calculateSumsAndSubtractions = (numbers) => {
+    const calcs = [];
+    const recs = [];
+    
+    if (numbers.length < 2) return { calcs, recs };
+
+    // Pegar os últimos números para análise
+    for (let i = 0; i < numbers.length - 1; i++) {
+      const num1 = numbers[i];
+      const num2 = numbers[i + 1];
+      
+      // Soma
+      const sum = num1 + num2;
+      const sumTerminal = sum % 10;
+      
+      // Subtração
+      const sub = Math.abs(num1 - num2);
+      const subTerminal = sub % 10;
+      
+      calcs.push({
+        operation: `${num1} + ${num2} = ${sum}`,
+        result: sum,
+        terminal: sumTerminal,
+        type: 'soma'
+      });
+      
+      calcs.push({
+        operation: `|${num1} - ${num2}| = ${sub}`,
+        result: sub,
+        terminal: subTerminal,
+        type: 'subtracao'
+      });
+
+      // Recomendações baseadas nos terminais
+      if (sumTerminal === 0) {
+        recs.push({
+          type: 'terminal_zero',
+          description: `Soma resultou em terminal 0 (${sum}). Aposte em todos os terminais 0.`,
+          numbers: [10, 20, 30],
+          confidence: 85
+        });
+      } else {
+        const terminalNumbers = [];
+        for (let n = 0; n <= 36; n++) {
+          if (n % 10 === sumTerminal) {
+            terminalNumbers.push(n);
+          }
+        }
+        recs.push({
+          type: 'terminal_sum',
+          description: `Soma: ${sum} (terminal ${sumTerminal}). Jogue nos terminais ${sumTerminal}.`,
+          numbers: terminalNumbers,
+          confidence: 75
+        });
+      }
+
+      if (subTerminal === 0) {
+        recs.push({
+          type: 'terminal_zero',
+          description: `Subtração resultou em terminal 0 (${sub}). Aposte em todos os terminais 0.`,
+          numbers: [10, 20, 30],
+          confidence: 85
+        });
+      } else {
+        const terminalNumbers = [];
+        for (let n = 0; n <= 36; n++) {
+          if (n % 10 === subTerminal) {
+            terminalNumbers.push(n);
+          }
+        }
+        recs.push({
+          type: 'terminal_sub',
+          description: `Subtração: ${sub} (terminal ${subTerminal}). Jogue nos terminais ${subTerminal}.`,
+          numbers: terminalNumbers,
+          confidence: 75
+        });
+      }
+    }
+
+    return { calcs, recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',')
+        .map(n => parseInt(n.trim()))
+        .filter(n => !isNaN(n) && n >= 0 && n <= 36);
+      
+      const { calcs, recs } = calculateSumsAndSubtractions(numbers);
+      setCalculations(calcs);
+      setRecommendations(recs);
+    }
+  }, [lastNumbers]);
+
+  const getTerminalNumbers = (terminal) => {
+    const numbers = [];
+    for (let n = 0; n <= 36; n++) {
+      if (n % 10 === terminal) {
+        numbers.push(n);
+      }
+    }
+    return numbers;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Explicação */}
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Calculator className="w-5 h-5" />
+            Como Funciona
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-zinc-300 text-sm">
+            Esta estratégia analisa os números passados fazendo somas e subtrações entre eles. 
+            O resultado indica em quais terminais apostar.
+          </p>
+          <div className="grid grid-cols-2 gap-4 p-3 bg-zinc-900/30 rounded-lg">
+            <div className="text-center">
+              <Plus className="w-6 h-6 text-green-400 mx-auto mb-1" />
+              <p className="text-xs text-zinc-400">Soma de números</p>
+            </div>
+            <div className="text-center">
+              <Minus className="w-6 h-6 text-red-400 mx-auto mb-1" />
+              <p className="text-xs text-zinc-400">Subtração de números</p>
+            </div>
+          </div>
+          <p className="text-zinc-400 text-xs">
+            <strong>Exemplo:</strong> 9 + 2 = 11 (terminal 1) → Jogue em todos os números terminados em 1
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Cálculos realizados */}
+      {calculations.length > 0 && (
+        <Card className="bg-emerald-900/20 border-emerald-800/30">
+          <CardHeader>
+            <CardTitle className="text-emerald-400">Cálculos Realizados</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {calculations.slice(-6).map((calc, index) => (
+                <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    {calc.type === 'soma' ? 
+                      <Plus className="w-4 h-4 text-green-400" /> : 
+                      <Minus className="w-4 h-4 text-red-400" />
+                    }
+                    <span className="text-zinc-300 font-mono">{calc.operation}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                      Terminal {calc.terminal}
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recomendações */}
+      {recommendations.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Próximas Jogadas Recomendadas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recommendations.slice(-4).map((rec, index) => (
+                <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 ml-2">
+                      {rec.confidence}% confiança
+                    </Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-1 mt-3">
+                    {rec.numbers.map((num, idx) => (
+                      <Badge 
+                        key={idx}
+                        className="bg-amber-500/20 text-amber-400 border-amber-500/30 font-bold text-xs"
+                      >
+                        {num}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Proteção */}
+      <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Proteções Importantes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="p-3 bg-red-900/20 rounded-lg">
+            <p className="text-zinc-300 text-sm">
+              <strong>Sempre jogar a favor da roleta:</strong> Use as somas e subtrações para identificar 
+              padrões, mas sempre cubra os terminais indicados.
+            </p>
+          </div>
+          <div className="p-3 bg-red-900/20 rounded-lg">
+            <p className="text-zinc-300 text-sm">
+              <strong>Terminal 0 é especial:</strong> Quando o resultado der terminal 0, 
+              jogue em 10, 20, 30 para proteção máxima.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

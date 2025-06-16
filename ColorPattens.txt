@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Droplets, Target, Eye } from "lucide-react";
+
+export default function ColorPatternsCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const [colorSequence, setColorSequence] = useState([]);
+  const redNumbers = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+  
+  const getNumberColor = (num) => {
+    if (num === 0) return "green";
+    return redNumbers.includes(num) ? "red" : "black";
+  };
+
+  const analyzePatterns = (colors) => {
+    const recs = [];
+    if (colors.length < 3) return { recs };
+
+    const last3 = colors.slice(-3).join('-');
+    const last4 = colors.slice(-4).join('-');
+
+    // Alternância Simples (Ex: R-B-R -> B)
+    if (last3 === 'red-black-red' || last3 === 'black-red-black') {
+      recs.push({
+        type: 'alternancia_simples',
+        description: `Padrão de Alternância Simples detectado. A tendência é continuar a alternância.`,
+        bet: `Apostar na cor ${last3.startsWith('red') ? 'Preto' : 'Vermelho'}`,
+        confidence: 85
+      });
+    }
+
+    // Repetição Tripla (Ex: R-R-R -> B)
+    if (last3 === 'red-red-red' || last3 === 'black-black-black') {
+      recs.push({
+        type: 'repeticao_tripla',
+        description: `Padrão de Repetição Tripla detectado. A tendência é quebrar a sequência.`,
+        bet: `Apostar na cor ${last3.startsWith('red') ? 'Preto' : 'Vermelho'}`,
+        confidence: 90
+      });
+    }
+
+    // Alternância Dupla (Ex: R-R-B-B -> R)
+    if (last4 === 'red-red-black-black' || last4 === 'black-black-red-red') {
+       recs.push({
+        type: 'alternancia_dupla',
+        description: `Padrão de Alternância Dupla detectado. A tendência é iniciar uma nova dupla.`,
+        bet: `Apostar na cor ${last4.startsWith('red') ? 'Vermelho' : 'Preto'}`,
+        confidence: 88
+      });
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const colors = numbers.map(getNumberColor);
+      setColorSequence(colors);
+      const result = analyzePatterns(colors);
+      setAnalysis(result);
+    } else {
+        setColorSequence([]);
+        setAnalysis(null);
+    }
+  }, [lastNumbers]);
+  
+  const ColorDot = ({ color }) => {
+    const colorClass = color === 'red' ? 'bg-red-500' : color === 'black' ? 'bg-zinc-400' : 'bg-green-500';
+    return <div className={`w-6 h-6 rounded-full ${colorClass} border-2 border-zinc-600`}></div>
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Droplets className="w-5 h-5" />
+            Padrões de Cores
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+ 

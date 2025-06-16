@@ -1,0 +1,80 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Moon, Target, Shield, AlertTriangle } from "lucide-react";
+
+export default function PadraoBlackCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  
+  const racetrack = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 26];
+
+  const getNeighbors = (number, count) => {
+    const index = racetrack.indexOf(number);
+    if (index === -1) return [];
+    const neighbors = new Set();
+    for (let i = 1; i <= count; i++) {
+      neighbors.add(racetrack[(index - i + racetrack.length) % racetrack.length]);
+      neighbors.add(racetrack[(index + i) % racetrack.length]);
+    }
+    return Array.from(neighbors);
+  };
+
+  const analyze = (numbers) => {
+    const recs = [];
+    if (numbers.length < 1) return { recs, triggerActive: false };
+
+    const lastNum = numbers[numbers.length - 1];
+    const triggerNumbers = [13, 31, 33];
+
+    if (triggerNumbers.includes(lastNum)) {
+      const entryNumbers = [13, 31, 33];
+      let betNumbers = new Set(entryNumbers);
+      
+      entryNumbers.forEach(n => {
+        getNeighbors(n, 2).forEach(v => betNumbers.add(v));
+      });
+
+      recs.push({
+        type: 'padrao_black',
+        description: `Gatilho ativado pelo número ${lastNum}. Entrada recomendada nos números do Padrão Black (13, 31, 33) com 2 vizinhos.`,
+        numbers: Array.from(betNumbers).sort((a, b) => a - b),
+        confidence: 90
+      });
+      return { recs, triggerActive: true, triggerNumber: lastNum };
+    }
+
+    return { recs, triggerActive: false };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      setAnalysis(analyze(numbers));
+    } else {
+      setAnalysis(null);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Moon className="w-5 h-5" />
+            Padrão Black
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm">
+            <b>Gatilho:</b> Um dos números <b>13, 31 ou 33</b>.
+            <br />
+            <b>Entrada:</b> Apostar nos próprios números <b>13, 31 e 33</b>, mais <b>2 vizinhos</b> de cada um na pista (Race).
+          </p>
+        </CardContent>
+      </Card>
+      
+      {analysis?.triggerActive ? (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2">
+ 

@@ -1,0 +1,123 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Award, Target, AlertTriangle } from "lucide-react";
+
+export default function HorsesCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+
+  const horses = {
+    1: [1, 4, 7],
+    2: [2, 5, 8],
+    3: [3, 6, 9]
+  };
+
+  const getHorseOfNumber = (num) => {
+    const terminal = num % 10;
+    if ([1, 4, 7].includes(terminal)) return 1;
+    if ([2, 5, 8].includes(terminal)) return 2;
+    if ([3, 6, 9, 0].includes(terminal)) return 3; // Terminal 0 often groups with 3,6,9
+    return null;
+  };
+
+  const analyzeHorses = (numbers) => {
+    const recs = [];
+    if (numbers.length < 1) return { recs };
+
+    const lastNum = numbers[numbers.length - 1];
+    const lastHorse = getHorseOfNumber(lastNum);
+
+    if (lastHorse) {
+      recs.push({
+        type: `puxada_${lastHorse}`,
+        description: `O número ${lastNum} saiu (terminal do cavalo ${lastHorse}). Ele tende a puxar seus próprios cavalos.`,
+        numbers: horses[lastHorse],
+        confidence: 75
+      });
+    }
+    
+    // Exemplo: 13-23-36 (cavalos 3, 3, 3) -> entrar nos outros cavalos
+    if (numbers.length >= 3) {
+      const lastThree = numbers.slice(-3);
+      const lastThreeHorses = lastThree.map(getHorseOfNumber);
+      if (lastThreeHorses.every(h => h === lastThreeHorses[0] && h !== null)) {
+        const horseToPlay = Object.keys(horses).filter(h => h != lastThreeHorses[0]);
+        const numbersToPlay = [...horses[horseToPlay[0]], ...horses[horseToPlay[1]]];
+        recs.push({
+          type: 'contra_repeticao',
+          description: `Sequência de 3 números do mesmo cavalo (${lastThreeHorses[0]}) detectada. Entre nos outros cavalos.`,
+          numbers: numbersToPlay,
+          confidence: 85
+        });
+      }
+    }
+    
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeHorses(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Award className="w-5 h-5 rotate-12" />
+            Método dos Cavalos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm mb-4">Cavalos são grupos de terminais que se "puxam". Esperar um cavalo se destacar e entrar na sequência é a chave.</p>
+          <div className="grid grid-cols-3 gap-4">
+            {Object.entries(horses).map(([key, value]) => (
+              <div key={key} className="p-3 bg-zinc-900/50 rounded-lg">
+                <h4 className="font-bold text-amber-400 text-center mb-2">Cavalo {key}</h4>
+                <div className="flex justify-center gap-2">
+                  {value.map(v => <Badge key={v} variant="secondary">{v}</Badge>)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                 <div className="flex items-start justify-between mb-2">
+                  <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 ml-2">{rec.confidence}%</Badge>
+                </div>
+                <p className="text-sm font-semibold text-zinc-300 mt-2">Apostar nos terminais:</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {rec.numbers.map((num, idx) => <Badge key={idx} className="bg-amber-500/20 text-amber-400 border-amber-500/30">{num}</Badge>)}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+       <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2"><AlertTriangle className="w-5 h-5" />Dicas de Operação</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-zinc-300 text-sm">
+          <p><strong>Melhor Gatilho:</strong> O melhor gatilho para entrar nos cavalos são eles mesmos. Um cavalo puxa o outro.</p>
+          <p><strong>Observação:</strong> Em determinado momento, a mesa começa a respeitar alguns padrões. É nesse momento que você deve observar e agir.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

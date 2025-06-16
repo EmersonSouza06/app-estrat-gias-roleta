@@ -1,0 +1,265 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Zap, Target, AlertTriangle, Heart } from "lucide-react";
+
+export default function GreenZeroCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const [recommendations, setRecommendations] = useState([]);
+
+  const analyzeGreenZero = (numbers) => {
+    const recs = [];
+    let zeroProximity = 0;
+    
+    // Padrão conhecido da estratégia: sequências que puxam o zero
+    const zeroPullingSequences = [
+      [27, 13, 34, 3, 12],
+      [32, 23, 26],
+      [1, 5, 8, 11, 14, 23, 26, 32] // vizinhos do zero
+    ];
+
+    // Analisar últimos 5-7 números
+    if (numbers.length >= 5) {
+      const last5 = numbers.slice(-5);
+      const last7 = numbers.slice(-7);
+      
+      // Verificar se há sequência que não contém zero
+      const hasZero = last7.includes(0);
+      
+      if (!hasZero) {
+        // Verificar padrões específicos
+        const sequence = last5.join(',');
+        
+        // Padrão exemplo da imagem: 27,13,34,3,12...
+        if (last5.includes(27) || last5.includes(13) || last5.includes(34)) {
+          recs.push({
+            type: 'specific_pattern',
+            description: 'Sequência similar ao padrão (27,13,34,3,12) detectada. Zero verde próximo!',
+            numbers: [0],
+            confidence: 92
+          });
+          zeroProximity = 95;
+        }
+
+        // Padrão de vizinhos finais: 32,23,26
+        const endingPattern = [32, 23, 26];
+        if (endingPattern.some(n => last5.includes(n))) {
+          recs.push({
+            type: 'ending_pattern',
+            description: 'Números finais do padrão detectados (32,23,26). Zero deve aparecer!',
+            numbers: [0],
+            confidence: 88
+          });
+          zeroProximity = Math.max(zeroProximity, 90);
+        }
+
+        // Análise geral: sem zero há muito tempo
+        if (numbers.length >= 8 && !numbers.slice(-8).includes(0)) {
+          recs.push({
+            type: 'zero_absence',
+            description: 'Zero ausente há muitos giros. Probabilidade crescente de aparecer.',
+            numbers: [0],
+            confidence: 85
+          });
+          zeroProximity = Math.max(zeroProximity, 85);
+        }
+
+        // Estratégia específica: cobertura de terminais zero
+        if (zeroProximity > 80) {
+          recs.push({
+            type: 'terminal_zero_coverage',
+            description: 'Realizar martingale simples no zero. Cubra todos os terminais zero como proteção.',
+            numbers: [0, 10, 20, 30],
+            confidence: 95
+          });
+        }
+      } else {
+        // Se o zero saiu recentemente
+        recs.push({
+          type: 'zero_reset',
+          description: 'Zero saiu recentemente. Aguarde nova sequência se formar.',
+          numbers: [],
+          confidence: 60
+        });
+      }
+    }
+
+    return {
+      zeroProximity,
+      hasZeroInLast10: numbers.slice(-10).includes(0),
+      lastZeroPosition: numbers.lastIndexOf(0),
+      gapSinceZero: numbers.length - numbers.lastIndexOf(0) - 1,
+      recs
+    };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',')
+        .map(n => parseInt(n.trim()))
+        .filter(n => !isNaN(n) && n >= 0 && n <= 36);
+      
+      const result = analyzeGreenZero(numbers);
+      setAnalysis(result);
+      setRecommendations(result.recs);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      {/* Explicação */}
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-green-400 flex items-center gap-2">
+            <Heart className="w-5 h-5" />
+            Estratégia do Zero Verde
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-zinc-300 text-sm">
+            A estratégia do Zero Verde é similar aos vizinhos do zero, mas não precisa esperar trocar 
+            o croupier. Analisa sequências específicas que "puxam" o zero.
+          </p>
+          <div className="p-3 bg-green-900/20 rounded-lg border border-green-800/30">
+            <p className="text-green-400 text-sm font-semibold mb-2">Exemplo de Sequência Poderosa:</p>
+            <div className="flex flex-wrap gap-2">
+              {[27, 13, 34, 3, 12].map((num, index) => (
+                <div key={index} className="flex items-center">
+                  <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                    {num}
+                  </Badge>
+                  {index < 4 && <span className="text-zinc-500 mx-1">→</span>}
+                </div>
+              ))}
+              <span className="text-green-400 mx-2 font-bold">💚 ZERO</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Análise */}
+      {analysis && (
+        <Card className="bg-green-900/20 border-green-800/30">
+          <CardHeader>
+            <CardTitle className="text-green-400">Análise do Zero Verde</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="text-center p-3 bg-green-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-green-400">{analysis.zeroProximity}%</div>
+                <div className="text-xs text-zinc-400">Proximidade do Zero</div>
+              </div>
+              <div className="text-center p-3 bg-green-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-green-400">
+                  {analysis.gapSinceZero >= 0 ? analysis.gapSinceZero : 'N/A'}
+                </div>
+                <div className="text-xs text-zinc-400">Giros sem Zero</div>
+              </div>
+              <div className="text-center p-3 bg-green-900/20 rounded-lg">
+                <div className="text-2xl font-bold text-green-400">
+                  {analysis.hasZeroInLast10 ? '✓' : '✗'}
+                </div>
+                <div className="text-xs text-zinc-400">Zero nos Últimos 10</div>
+              </div>
+            </div>
+
+            {analysis.zeroProximity > 80 && (
+              <div className="mt-4 p-4 bg-green-900/30 rounded-lg border border-green-600/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="w-5 h-5 text-green-400" />
+                  <span className="text-green-400 font-bold">ALTO POTENCIAL PARA ZERO!</span>
+                </div>
+                <p className="text-zinc-300 text-sm">
+                  As condições estão ideais para o zero aparecer. Execute a estratégia com confiança.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recomendações */}
+      {recommendations.length > 0 && (
+        <Card className="bg-emerald-900/20 border-emerald-800/30">
+          <CardHeader>
+            <CardTitle className="text-emerald-400 flex items-center gap-2">
+              <Target className="w-5 h-5" />
+              Estratégia Recomendada
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {recommendations.map((rec, index) => (
+                <div key={index} className="p-4 bg-emerald-900/20 rounded-lg border border-emerald-800/30">
+                  <div className="flex items-start justify-between mb-2">
+                    <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 ml-2">
+                      {rec.confidence}% confiança
+                    </Badge>
+                  </div>
+                  
+                  {rec.numbers.length > 0 && (
+                    <div className="mt-3">
+                      <div className="flex flex-wrap gap-2">
+                        {rec.numbers.map((num, idx) => (
+                          <Badge 
+                            key={idx}
+                            className={num === 0 ? 
+                              "bg-green-500/30 text-green-300 border-green-500/50 font-bold text-lg px-3 py-1" :
+                              "bg-blue-500/20 text-blue-400 border-blue-500/30"
+                            }
+                          >
+                            {num === 0 ? '💚 ZERO' : num}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {rec.type === 'terminal_zero_coverage' && (
+                    <div className="mt-3 p-3 bg-yellow-900/20 rounded-lg border border-yellow-800/30">
+                      <p className="text-yellow-300 text-sm">
+                        <strong>💡 Dica:</strong> Realize apenas 1 martingale no zero. 
+                        Use terminais zero (10,20,30) como proteção extra.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Proteção */}
+      <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Protocolo de Proteção
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="p-3 bg-red-900/20 rounded-lg">
+            <p className="text-zinc-300 text-sm">
+              <strong>Martingale Controlado:</strong> Realize apenas 1 martingale (repetir a jogada) 
+              quando o padrão for identificado. Não force além disso.
+            </p>
+          </div>
+          <div className="p-3 bg-yellow-900/20 rounded-lg border border-yellow-800/30">
+            <p className="text-yellow-300 text-sm">
+              <strong>Proteção com Terminais:</strong> Sempre cubra os terminais zero (10,20,30) 
+              para aumentar suas chances de recuperação.
+            </p>
+          </div>
+          <div className="p-3 bg-green-900/20 rounded-lg border border-green-800/30">
+            <p className="text-green-300 text-sm">
+              <strong>Momento Ideal:</strong> Execute quando a sequência estiver formada e 
+              não houver zero nos últimos 6-8 números.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

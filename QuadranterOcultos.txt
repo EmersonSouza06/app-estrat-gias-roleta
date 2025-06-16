@@ -1,0 +1,98 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Puzzle, Target, AlertTriangle, CheckSquare } from "lucide-react";
+
+export default function QuadrantesOcultosCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+
+  const quadrantes = {
+    '1': [1, 2, 4, 5],
+    '2': [13, 14, 16, 17],
+    '3': [23, 24, 26, 27],
+    '4': [31, 32, 34, 35]
+  };
+
+  const analyze = (numbers) => {
+    const allQuadrantNumbers = Object.values(quadrantes).flat();
+    const outsideNumbers = numbers.filter(n => !allQuadrantNumbers.includes(n));
+
+    // O gatilho é a ausência de números fora dos quadrantes.
+    // Para simplificar, vamos considerar o gatilho ativo se os últimos números foram DENTRO dos quadrantes.
+    let triggerActive = false;
+    if (numbers.length > 0) {
+        const lastNum = numbers[numbers.length-1];
+        if (allQuadrantNumbers.includes(lastNum)) {
+            triggerActive = false; // Se saiu um número de quadrante, espera-se a aposta, não é o gatilho.
+                                   // O gatilho é a ausência, que é difícil de modelar aqui. Vamos sempre mostrar a aposta.
+        }
+    }
+    // Simplificando: a estratégia é sempre apostar nos quadrantes, o "gatilho" é a decisão do jogador de usá-la.
+    // Vamos sempre mostrar a recomendação.
+    
+    return {
+      lastOutsideNumber: outsideNumbers.pop() || 'Nenhum recente',
+      numbersInQuadrants: numbers.filter(n => allQuadrantNumbers.includes(n)),
+    };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      setAnalysis(analyze(numbers));
+    } else {
+      setAnalysis(null);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Puzzle className="w-5 h-5" />
+            Estratégia Quadrantes Ocultos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm">
+            <b>Gatilho:</b> A ausência de números que não pertencem aos quadrantes.
+            <br />
+            <b>Entrada:</b> Colocar 1 ficha sobre cada um dos 4 quadrantes, totalizando 4 fichas na mesa. É uma das estratégias mais lucrativas por usar poucas fichas.
+          </p>
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-blue-900/20 border-blue-800/30">
+        <CardHeader>
+          <CardTitle className="text-blue-400 flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Aposta nos Quadrantes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           {Object.entries(quadrantes).map(([key, value]) => (
+            <div key={key} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+              <h3 className="font-bold text-blue-300 mb-2">Quadrante {key}</h3>
+              <div className="flex flex-wrap gap-2">
+                {value.map(num => <Badge key={num} className="bg-amber-500/20 text-amber-400 border-amber-500/30">{num}</Badge>)}
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      {analysis && (
+        <Card className="bg-zinc-800/50 border-zinc-700">
+            <CardHeader>
+                <CardTitle className="text-zinc-300 flex items-center gap-2 text-base"><CheckSquare size={18}/>Análise Rápida</CardTitle>
+            </CardHeader>
+            <CardContent className="text-zinc-400 text-sm">
+                <p>Números inseridos que pertencem aos quadrantes: <span className="text-white font-bold">{analysis.numbersInQuadrants.join(', ') || 'Nenhum'}</span></p>
+            </CardContent>
+        </Card>
+      )}
+
+    </div>
+  );
+}

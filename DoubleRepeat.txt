@@ -1,0 +1,126 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Repeat, Target, AlertTriangle, ShieldCheck } from "lucide-react";
+
+export default function DoubleRepeatCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+
+  const analyzeDoubles = (numbers) => {
+    const recs = [];
+    
+    if (numbers.length < 3) return { recs };
+
+    // Padrão: 36,34,16... repetiu 16 (terminal 6) -> gatilho para terminal 4
+    if (numbers.slice(-3).join(',') === '36,34,16') {
+      recs.push({
+        type: 'pattern_16',
+        description: 'Padrão (36,34,16) detectado. O terminal "6" repetiu, gatilho para apostar em todos os terminais "4".',
+        numbers: getTerminalNumbers(4),
+        confidence: 80
+      });
+    }
+
+    // Padrão: 18,25,8... repetiu 8 -> joga a favor, terminais 5
+    if (numbers.slice(-3).join(',') === '18,25,8') {
+      recs.push({
+        type: 'pattern_8',
+        description: 'Padrão (18,25,8) detectado. O número 8 repetiu, gatilho para apostar em todos os terminais "5".',
+        numbers: getTerminalNumbers(5),
+        confidence: 82
+      });
+    }
+
+    // Proteção: Repetição do último número
+    const lastNum = numbers[numbers.length - 1];
+    const secondLastNum = numbers[numbers.length - 2];
+    
+    if (lastNum === numbers[numbers.length - 3]) {
+      recs.push({
+        type: 'protection_repeat',
+        description: `Proteção: O número ${lastNum} repetiu. Cubra o terminal ${lastNum % 10}.`,
+        numbers: getTerminalNumbers(lastNum % 10),
+        confidence: 70
+      });
+    }
+    
+    // Proteção: Soma/Subtração dos anteriores
+    if (numbers.length >= 2) {
+        const n1 = numbers[numbers.length-2];
+        const n2 = numbers[numbers.length-3];
+        if (n1 && n2) {
+            const sum = n1 + n2;
+            const sub = Math.abs(n1 - n2);
+            recs.push({
+                type: 'protection_sum_sub',
+                description: `Proteção por soma/subtração: ${n2}+${n1}=${sum} (terminal ${sum % 10}), |${n2}-${n1}|=${sub} (terminal ${sub % 10}).`,
+                numbers: [...getTerminalNumbers(sum % 10), ...getTerminalNumbers(sub % 10)],
+                confidence: 65
+            });
+        }
+    }
+
+    return { recs };
+  };
+  
+  const getTerminalNumbers = (terminal) => Array.from({length: 4}, (_, i) => terminal + i * 10).filter(n => n <= 36 && n >= (terminal === 0 ? 0 : 1));
+
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeDoubles(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Repeat className="w-5 h-5" />
+            Duplos em Repetição
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm">
+            Esta estratégia analisa padrões de números que se formam após uma repetição específica, criando um gatilho para um terminal.
+          </p>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                <div className="flex items-start justify-between mb-2">
+                  <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 ml-2">{rec.confidence}%</Badge>
+                </div>
+                <div className="flex flex-wrap gap-1 mt-3">
+                  {rec.numbers.map((num, idx) => <Badge key={idx} className="bg-amber-500/20 text-amber-400 border-amber-500/30">{num}</Badge>)}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2"><ShieldCheck className="w-5 h-5" />Dicas de Proteção</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-zinc-300 text-sm">
+          <p><strong>Jogar a favor da roleta:</strong> Sempre jogue a favor da tendência que a roleta está mostrando.</p>
+          <p><strong>Cobrir terminal "0":</strong> É uma proteção universal e muito eficaz.</p>
+          <p><strong>Repetição do último número:</strong> A repetição de um número pode ser um gatilho, mas também uma proteção. Ex: Se repetiu o 8, cubra o terminal 8.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

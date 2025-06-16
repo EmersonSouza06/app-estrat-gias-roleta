@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { LayoutGrid, Target, AlertTriangle } from "lucide-react";
+
+export default function DozensColumnsCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const [sequence, setSequence] = useState({ dozens: [], columns: [] });
+
+  const getDozen = (n) => (n > 0 && n <= 12) ? 1 : (n > 12 && n <= 24) ? 2 : (n > 24 && n <= 36) ? 3 : 0;
+  const getColumn = (n) => (n > 0) ? (n - 1) % 3 + 1 : 0;
+
+  const analyzePatterns = (items, type) => {
+    const recs = [];
+    if (items.length < 3) return recs;
+
+    const last3 = items.slice(-3).join('');
+    const last4 = items.slice(-4).join('');
+
+    // Padrão 123 e 321
+    if (last3 === '123' || last3 === '321') {
+      recs.push({
+        type: `padrao_${last3}`,
+        description: `Padrão de sequência de ${type} (${items.slice(-3).join('-')}) detectado. Possível formação de Green.`,
+        bet: `Apostar na ${type} ${last3 === '123' ? '1' : '3'}`,
+        confidence: 85
+      });
+    }
+
+    // Padrão 121 e 323
+    if (last3 === '121' || last3 === '323') {
+      recs.push({
+        type: `padrao_${last3}`,
+        description: `Padrão de retorno em ${type} (${items.slice(-3).join('-')}) detectado.`,
+        bet: `Apostar na ${type} ${last3.endsWith('1') ? '2' : '2'}`,
+        confidence: 88
+      });
+    }
+    
+    // Repetição Tripla
+    if (items.length >= 3 && items.slice(-3).every(i => i === items[items.length-1])) {
+       recs.push({
+        type: `repeticao_tripla`,
+        description: `Repetição tripla na ${type} ${items[items.length-1]}. Gatilho de entrada na próxima rodada nas outras duas ${type}s.`,
+        bet: `Apostar nas ${type}s que não são a ${items[items.length-1]}`,
+        confidence: 90
+      });
+    }
+    return recs;
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const dozens = numbers.map(getDozen);
+      const columns = numbers.map(getColumn);
+      setSequence({ dozens, columns });
+
+      const dozenRecs = analyzePatterns(dozens, "Dúzia");
+      const columnRecs = analyzePatterns(columns, "Coluna");
+      setAnalysis({ recs: [...dozenRecs, ...columnRecs] });
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <LayoutGrid className="w-5 h-5" />
+            Padrões de Dúzias e Colunas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm mb-4">Esta estratégia analisa a sequência de dúzias e colunas para encontrar padrões de repetição e sequência, que servem como gatilhos de entrada.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h4 className="text-sm font-semibold text-zinc-300 mb-2">Seq. Dúzias:</h4>
+              <div className="flex flex-wrap gap-1">{sequence.dozens.map((d,i) => <Badge key={i} variant="secondary">{d}</Badge>)}</div>
+            </div>
+             <div>
+              <h4 className="text-sm font-semibold text-zinc-300 mb-2">Seq. Colunas:</h4>
+              <div className="flex flex-wrap gap-1">{sequence.columns.map((c,i) => <Badge key={i} variant="secondary">{c}</Badge>)}</div>
+ 

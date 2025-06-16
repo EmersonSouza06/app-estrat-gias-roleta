@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Repeat1, Target, AlertTriangle } from "lucide-react";
+
+export default function RepeatedNumbersCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+
+  const getTerminalNumbers = (terminal) => Array.from({length: 4}, (_, i) => terminal + i * 10).filter(n => n <= 36 && n >= (terminal === 0 ? 0 : 1));
+
+  const analyzeRepeats = (numbers) => {
+    const recs = [];
+    if (numbers.length < 3) return { recs };
+    
+    // Padrão X,Y,X (ex: 15,25,15)
+    const last = numbers[numbers.length - 1];
+    const secondLast = numbers[numbers.length - 2];
+    const thirdLast = numbers[numbers.length - 3];
+
+    if (last === thirdLast) {
+      const terminal = last % 10;
+      recs.push({
+        type: 'padrao_xyx',
+        description: `Padrão de repetição (${thirdLast},${secondLast},${last}) detectado. A tendência é puxar o terminal ${terminal}.`,
+        numbers: getTerminalNumbers(terminal),
+        confidence: 85
+      });
+
+      // Proteção 1: Terminais vizinhos
+      const prevTerminal = (terminal - 1 + 10) % 10;
+      const nextTerminal = (terminal + 1) % 10;
+       recs.push({
+        type: 'protecao_vizinhos',
+        description: `Proteção: Cubra os terminais vizinhos ${prevTerminal} e ${nextTerminal}.`,
+        numbers: [...getTerminalNumbers(prevTerminal), ...getTerminalNumbers(nextTerminal)],
+        confidence: 70
+      });
+
+      // Proteção 2: Terminal que puxa
+       if (terminal === 5) {
+            recs.push({
+                type: 'protecao_puxada',
+                description: 'Proteção: Terminal 5 costuma puxar o terminal 3.',
+                numbers: getTerminalNumbers(3),
+                confidence: 65
+            });
+       }
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeRepeats(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Repeat1 className="w-5 h-5" />
+            Números Repetidos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm">Esta estratégia analisa padrões onde um número se repete de forma alternada (ex: 15, 25, 15), formando um gatilho visual para apostar no seu terminal.</p>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                 <div className="flex items-start justify-between mb-2">
+ 

@@ -1,0 +1,86 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Users, Target, AlertTriangle } from "lucide-react";
+
+export default function ColorSiblingsCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const siblings = [8, 11, 9, 12, 10, 13, 18, 21, 17, 20, 16, 19, 27, 30, 26, 29, 28, 31];
+
+  const analyzeSiblings = (numbers) => {
+    const recs = [];
+    if (numbers.length < 1) return { recs };
+
+    const lastNum = numbers[numbers.length - 1];
+
+    if (siblings.includes(lastNum)) {
+      recs.push({
+        type: 'irmaos_ativado',
+        description: `Irmão de Cor (${lastNum}) saiu. O gatilho foi ativado! Entre em todos os outros irmãos.`,
+        numbers: siblings.filter(s => s !== lastNum),
+        confidence: 90
+      });
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeSiblings(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Users className="w-5 h-5" />
+            Irmãos de Cores
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm mb-4">Esta é uma das estratégias mais simples e eficazes. Os "Irmãos de Cores" são um grupo de números que se puxam com altíssima frequência.</p>
+          <div className="flex flex-wrap gap-2">
+            {siblings.map(s => <Badge key={s} className="bg-amber-500/20 text-amber-400 border-amber-500/30">{s}</Badge>)}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendação de Aposta</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                 <div className="flex items-start justify-between mb-2">
+                  <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 ml-2">{rec.confidence}%</Badge>
+                </div>
+                <p className="text-sm font-semibold text-zinc-300 mt-2">Apostar nos números:</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {rec.numbers.map((num, idx) => <Badge key={idx} className="bg-amber-500/20 text-amber-400 border-amber-500/30">{num}</Badge>)}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2"><AlertTriangle className="w-5 h-5" />Dicas de Operação</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-zinc-300 text-sm">
+          <p><strong>Estratégia Simples:</strong> Espere sair algum dos números da lista e em seguida você vai entrar em todos eles.</p>
+          <p><strong>Alta Frequência:</strong> Eles aparecem com muita frequência e é ideal para bater sua meta rapidamente.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

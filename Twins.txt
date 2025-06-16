@@ -1,0 +1,107 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Copy, Target, AlertTriangle } from "lucide-react";
+
+export default function TwinsCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const twins = [11, 22, 33];
+  
+  // A roleta da imagem é a europeia
+  const racetrack = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 26];
+
+  const getNeighbors = (number, count) => {
+    const index = racetrack.indexOf(number);
+    if (index === -1) return [];
+    const neighbors = [];
+    for (let i = 1; i <= count; i++) {
+      neighbors.push(racetrack[(index - i + racetrack.length) % racetrack.length]);
+      neighbors.push(racetrack[(index + i) % racetrack.length]);
+    }
+    return [...new Set(neighbors)];
+  };
+
+  const analyzeTwins = (numbers) => {
+    const recs = [];
+    if (numbers.length < 1) return { recs };
+
+    const lastNum = numbers[numbers.length - 1];
+
+    if (twins.includes(lastNum)) {
+      recs.push({
+        type: `vizinhos_${lastNum}`,
+        description: `Gêmeo ${lastNum} saiu. Entre nos vizinhos dele (até 3 para cada lado).`,
+        numbers: getNeighbors(lastNum, 3),
+        confidence: 80
+      });
+    }
+
+    if (lastNum === 11) {
+        recs.push({ type: 'terminal_2', description: 'Gêmeo 11 puxa os terminais 2.', numbers: [2, 12, 22, 32], confidence: 75});
+    }
+    if (lastNum === 22) {
+        recs.push({ type: 'terminal_22', description: 'Gêmeo 22 também puxa seus próprios terminais.', numbers: getNeighbors(22, 2).map(n => n % 10), confidence: 75});
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeTwins(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Copy className="w-5 h-5" />
+            Método dos Gêmeos
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm mb-4">Estratégia focada nos números gêmeos (11, 22, 33). Observando os vizinhos dos gêmeos, você deve entrar em todos eles.</p>
+          <div className="flex justify-center gap-4">
+            {twins.map(t => <Badge key={t} className="text-xl px-4 py-2 bg-amber-500/20 text-amber-400 border-amber-500/30">{t}</Badge>)}
+          </div>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                 <div className="flex items-start justify-between mb-2">
+                  <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 ml-2">{rec.confidence}%</Badge>
+                </div>
+                <p className="text-sm font-semibold text-zinc-300 mt-2">Apostar nos números:</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {rec.numbers.map((num, idx) => <Badge key={idx} className="bg-amber-500/20 text-amber-400 border-amber-500/30">{num}</Badge>)}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      <Card className="bg-red-900/20 border-red-800/30">
+        <CardHeader>
+          <CardTitle className="text-red-400 flex items-center gap-2"><AlertTriangle className="w-5 h-5" />Dicas de Operação</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-zinc-300 text-sm">
+          <p><strong>Estudo Detalhado:</strong> Para utilizar este padrão, é necessário um estudo bem detalhado em relação aos vizinhos de cada gêmeo.</p>
+          <p><strong>Marcar Terminais:</strong> Sempre que entrar nos gêmeos, você vai marcar os terminais 2 também, porque os gêmeos 11 puxa os terminais 2, e o número 22 também puxa seus terminais.</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

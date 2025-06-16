@@ -1,0 +1,84 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { X, Target, AlertTriangle } from "lucide-react";
+
+export default function MultipliedNumbersCalculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+
+  const multipliedGroups = {
+    group369: [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36],
+    group2468: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36]
+  };
+
+  const getTerminalNumbers = (terminal) => Array.from({length: 4}, (_, i) => terminal + i * 10).filter(n => n <= 36 && n >= (terminal === 0 ? 0 : 1));
+
+  const analyzeMultiplied = (numbers) => {
+    const recs = [];
+    if (numbers.length < 1) return { recs };
+    
+    const lastNum = numbers[numbers.length - 1];
+
+    if (multipliedGroups.group369.includes(lastNum)) {
+      recs.push({
+        type: 'puxada_369',
+        description: `Número do padrão (3,6,9) saiu: ${lastNum}. A jogada indicada é para todos os terminais 9.`,
+        numbers: getTerminalNumbers(9),
+        confidence: 80
+      });
+    }
+    
+    // Análise de presença do grupo nos últimos números
+    const lastThree = numbers.slice(-3);
+    const count369 = lastThree.filter(n => multipliedGroups.group369.includes(n)).length;
+    
+    if (count369 >= 2) {
+      recs.push({
+        type: 'presenca_369',
+        description: `Forte presença do padrão (3,6,9) nos últimos números. Reforce a aposta no terminal 9.`,
+        numbers: getTerminalNumbers(9),
+        confidence: 88
+      });
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeMultiplied(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <X className="w-5 h-5" />
+            Números Multiplicados
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm mb-4">Esta estratégia busca por padrões de números que são múltiplos de 3 (3,6,9) ou 2 (2,4,6,8). Quando um número desse padrão aparece, ele cria um gatilho para um terminal específico.</p>
+          <div className="grid grid-cols-2 gap-4">
+             <div className="p-3 bg-zinc-900/50 rounded-lg">
+                <h4 className="font-bold text-amber-400 text-center mb-2">Padrão 3,6,9</h4>
+             </div>
+             <div className="p-3 bg-zinc-900/50 rounded-lg">
+                <h4 className="font-bold text-amber-400 text-center mb-2">Padrão 2,4,6,8</h4>
+             </div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Recomendações</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {analysis.recs.map((rec, index) => (
+ 

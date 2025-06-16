@@ -1,0 +1,80 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AppWindow, Target } from "lucide-react";
+
+export default function Method30Calculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const numbers30 = [30, 31, 32, 33, 34, 35, 36];
+  const dozen1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+  const triggerNumbers = [15, 16, 17, 18, 19];
+
+
+  const analyzeMethod30 = (numbers) => {
+    const recs = [];
+    if (numbers.length < 5) return { recs };
+
+    const last5 = numbers.slice(-5);
+    const lastNum = numbers[numbers.length - 1];
+    
+    // Gatilho 1: Ausência de 30s na 1ª dúzia, seguido de 22
+    const firstDozenInLast5 = last5.filter(n => dozen1.includes(n));
+    const no30sInDozen1 = !firstDozenInLast5.some(n => n >= 30 && n <= 36);
+
+    if (lastNum === 22 && no30sInDozen1) {
+      recs.push({
+        type: 'gatilho_1',
+        description: `Gatilho 1: Após o 22 e com a ausência de 30s na 1ª dúzia, entrada nos 30s.`,
+        bet: `Apostar em todos os números 30`,
+        confidence: 87,
+        numbers: numbers30
+      });
+    }
+    
+    // Gatilho 2: Dúzia 3 e números específicos puxam 30s
+    if (triggerNumbers.includes(lastNum)) {
+       recs.push({
+        type: 'gatilho_2',
+        description: `Gatilho 2: O número ${lastNum} puxa os 30s.`,
+        bet: `Apostar em todos os números 30`,
+        confidence: 85,
+        numbers: numbers30
+      });
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeMethod30(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <AppWindow className="w-5 h-5" />
+            Método dos Números 30
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-zinc-300 text-sm">Este método é ativado pela ausência de números da casa dos 30 em certas condições, ou pela "puxada" de números específicos que são vizinhos na race.</p>
+        </CardContent>
+      </Card>
+      
+      {analysis && analysis.recs.length > 0 && (
+        <Card className="bg-blue-900/20 border-blue-800/30">
+          <CardHeader>
+            <CardTitle className="text-blue-400 flex items-center gap-2"><Target className="w-5 h-5" />Gatilho Ativado!</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+             {analysis.recs.map((rec, index) => (
+              <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                 <div className="flex items-start justify-between mb-2">
+                  <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+ 

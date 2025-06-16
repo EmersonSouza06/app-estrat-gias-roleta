@@ -1,0 +1,200 @@
+
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { FlipHorizontal, Target, AlertTriangle } from "lucide-react";
+
+export default function MirrorNumbersCalculator({ lastNumbers }) {
+  const [mirrorNumbers, setMirrorNumbers] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+
+  const getMirrorNumber = (num) => {
+    const str = num.toString().padStart(2, '0');
+    return parseInt(str.split('').reverse().join(''));
+  };
+
+  const findMirrorPatterns = (numbers) => {
+    const mirrors = [];
+    const recs = [];
+    
+    numbers.forEach(num => {
+      if (num >= 10 && num <= 36) {
+        const mirror = getMirrorNumber(num);
+        if (mirror >= 10 && mirror <= 36 && mirror !== num) {
+          mirrors.push({ original: num, mirror });
+        }
+      }
+    });
+
+    // Exemplos conhecidos de números espelhados
+    const knownMirrors = [
+      [21, 12], [23, 32], [31, 13], [26, 29],
+      [14, 41], [15, 51], [16, 61], [17, 71],
+      [18, 81], [19, 91], [24, 42], [25, 52],
+      [27, 72], [28, 82], [34, 43], [35, 53],
+      [36, 63], [37, 73], [38, 83], [39, 93]
+    ].filter(([a, b]) => a <= 36 && b <= 36);
+
+    // Verificar se há padrões
+    knownMirrors.forEach(([a, b]) => {
+      if (numbers.includes(a)) {
+        recs.push({
+          type: 'mirror',
+          description: `Número ${a} saiu, espelho ${b} pode aparecer`,
+          numbers: [b],
+          confidence: 85
+        });
+      }
+      if (numbers.includes(b)) {
+        recs.push({
+          type: 'mirror',
+          description: `Número ${b} saiu, espelho ${a} pode aparecer`,
+          numbers: [a],
+          confidence: 85
+        });
+      }
+    });
+
+    return { mirrors, recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',')
+        .map(n => parseInt(n.trim()))
+        .filter(n => !isNaN(n) && n >= 0 && n <= 36);
+      
+      const { mirrors, recs } = findMirrorPatterns(numbers);
+      setMirrorNumbers(mirrors);
+      setRecommendations(recs);
+    }
+  }, [lastNumbers]);
+
+  const allMirrorPairs = [
+    [21, 12], [23, 32], [31, 13], [26, 29],
+    [14, 41], [15, 51], [16, 61], [24, 42]
+  ].filter(([a, b]) => a <= 36 && b <= 36);
+
+  return (
+    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div className="xl:col-span-2">
+        {/* Explicação */}
+        <Card className="bg-zinc-800/30 border-zinc-700">
+          <CardHeader>
+            <CardTitle className="text-amber-400 flex items-center gap-2">
+              <FlipHorizontal className="w-5 h-5" />
+              Como Funciona
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-zinc-300 text-sm">
+              A estratégia dos números espelhados identifica padrões onde números "espelhados" 
+              tendem a aparecer em sequência. Por exemplo: 21 ↔ 12, 23 ↔ 32, 31 ↔ 13.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              {allMirrorPairs.map(([a, b], index) => (
+                <Badge 
+                  key={index}
+                  variant="outline" 
+                  className="bg-amber-500/10 border-amber-500/30 text-amber-400 justify-center"
+                >
+                  {a} ↔ {b}
+                </Badge>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Análise e Recomendações */}
+      <div className="space-y-6">
+        {/* Análise dos números inseridos */}
+        {mirrorNumbers.length > 0 && (
+          <Card className="bg-emerald-900/20 border-emerald-800/30">
+            <CardHeader>
+              <CardTitle className="text-emerald-400">Espelhos Identificados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3">
+                {mirrorNumbers.map((mirror, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-emerald-900/20 rounded-lg">
+                    <span className="text-zinc-300">
+                      Número {mirror.original} → Espelho {mirror.mirror}
+                    </span>
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                      Identificado
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Recomendações */}
+        {recommendations.length > 0 && (
+          <Card className="bg-blue-900/20 border-blue-800/30">
+            <CardHeader>
+              <CardTitle className="text-blue-400 flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Próximas Jogadas Recomendadas
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recommendations.slice(0, 5).map((rec, index) => (
+                  <div key={index} className="p-4 bg-blue-900/20 rounded-lg border border-blue-800/30">
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="text-zinc-300 text-sm flex-1">{rec.description}</p>
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 ml-2">
+                        {rec.confidence}% confiança
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2 mt-3">
+                      {rec.numbers.map((num, idx) => (
+                        <Badge 
+                          key={idx}
+                          className="bg-amber-500/20 text-amber-400 border-amber-500/30 font-bold"
+                        >
+                          {num}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+      
+      {/* Proteção */}
+      <div className="space-y-6">
+        <Card className="bg-red-900/20 border-red-800/30">
+          <CardHeader>
+            <CardTitle className="text-red-400 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Proteções Importantes
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="p-3 bg-red-900/20 rounded-lg">
+              <p className="text-zinc-300 text-sm">
+                <strong>Sempre cobrir todos os terminais "0":</strong> Jogue em todos os números terminados em 0 
+                (10, 20, 30) para proteção.
+              </p>
+            </div>
+            <div className="p-3 bg-red-900/20 rounded-lg">
+              <p className="text-zinc-300 text-sm">
+                <strong>Hora imprevisível:</strong> A roleta é imprevisível, sempre faça suas jogadas 
+                considerando os espelhos mas com proteção adequada.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

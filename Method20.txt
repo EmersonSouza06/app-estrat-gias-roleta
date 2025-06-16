@@ -1,0 +1,80 @@
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Puzzle, Target } from "lucide-react";
+
+export default function Method20Calculator({ lastNumbers }) {
+  const [analysis, setAnalysis] = useState(null);
+  const numbers20 = [20, 21, 22, 23, 24, 25, 26, 27, 28, 29];
+
+  const analyzeMethod20 = (numbers) => {
+    const recs = [];
+    if (numbers.length < 2) return { recs };
+
+    const lastNum = numbers[numbers.length - 1];
+    
+    // Gatilho 1: Padrão anterior ao 5
+    if (lastNum === 5) {
+      recs.push({
+        type: 'gatilho_1',
+        description: `Gatilho 1: Saiu o número 5. O padrão anterior pode ter formado a base para os números 20.`,
+        bet: `Apostar em todos os números 20`,
+        confidence: 85,
+        numbers: numbers20
+      });
+    }
+    
+    // Gatilho 2: Após o 35
+    if (lastNum === 35) {
+       recs.push({
+        type: 'gatilho_2',
+        description: `Gatilho 2: Saiu o número 35. Observe se os números 20 vêm em seguida ou estão pulando casas.`,
+        bet: `Apostar em todos os números 20`,
+        confidence: 88,
+        numbers: numbers20
+      });
+    }
+    
+    // Gatilho 3: Após o 10
+    if (lastNum === 10) {
+        recs.push({
+        type: 'gatilho_3',
+        description: `Gatilho 3: Saiu o número 10. Entrada em todos os números 20.`,
+        bet: `Apostar em todos os números 20`,
+        confidence: 87,
+        numbers: numbers20
+      });
+    }
+
+    // Gatilho 4: Após o 2
+    if (lastNum === 2) {
+       recs.push({
+        type: 'gatilho_4',
+        description: `Gatilho 4: Saiu o número 2. Entrada em todos os números 20.`,
+        bet: `Apostar em todos os números 20`,
+        confidence: 86,
+        numbers: numbers20
+      });
+    }
+
+    return { recs };
+  };
+
+  useEffect(() => {
+    if (lastNumbers) {
+      const numbers = lastNumbers.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+      const result = analyzeMethod20(numbers);
+      setAnalysis(result);
+    }
+  }, [lastNumbers]);
+
+  return (
+    <div className="space-y-6">
+      <Card className="bg-zinc-800/30 border-zinc-700">
+        <CardHeader>
+          <CardTitle className="text-amber-400 flex items-center gap-2">
+            <Puzzle className="w-5 h-5" />
+            Método dos Números 20
+          </CardTitle>
+        </CardHeader>
+ 
