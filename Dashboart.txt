@@ -1,0 +1,223 @@
+import React, { useState, useEffect } from "react";
+import { Strategy, NumberHistory } from "@/entities/all";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+import { 
+  Target, 
+  TrendingUp, 
+  Calculator, 
+  Sparkles,
+  ArrowRight,
+  Zap,
+  Award,
+  BarChart3
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+
+export default function Dashboard() {
+  const [strategies, setStrategies] = useState([]);
+  const [recentNumbers, setRecentNumbers] = useState([]);
+  const [stats, setStats] = useState({
+    totalSessions: 0,
+    favoriteStrategy: "Números Espelhados",
+    winRate: 87.5
+  });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const strategiesData = await Strategy.list();
+    const numbersData = await NumberHistory.list("-created_date", 10);
+    setStrategies(strategiesData);
+    setRecentNumbers(numbersData);
+  };
+
+  const featuredStrategies = [
+    {
+      name: "Números Espelhados",
+      description: "Estratégia baseada em números espelhados como 21,12 / 23,32",
+      icon: "🎯",
+      color: "from-amber-500 to-yellow-600",
+      winRate: "85%"
+    },
+    {
+      name: "Vizinhos do Zero",
+      description: "Focada nos números vizinhos do zero na roleta",
+      icon: "🎱",
+      color: "from-emerald-500 to-teal-600",
+      winRate: "78%"
+    },
+    {
+      name: "Zero Verde",
+      description: "Estratégia específica para capturar o zero",
+      icon: "💚",
+      color: "from-green-500 to-emerald-600",
+      winRate: "92%"
+    },
+    {
+      name: "Duplos Repetição",
+      description: "Baseada em padrões de números duplos",
+      icon: "🔄",
+      color: "from-blue-500 to-indigo-600",
+      winRate: "81%"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 via-yellow-500 to-amber-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-amber-500/20">
+              <Sparkles className="w-8 h-8 text-zinc-900" />
+            </div>
+          </div>
+          <h1 className="text-5xl font-bold text-transparent bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text">
+            O Indomável
+          </h1>
+          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+            Domine a roleta com estratégias testadas e comprovadas
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-400">Taxa de Sucesso</CardTitle>
+              <TrendingUp className="h-4 w-4 text-emerald-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-emerald-400">{stats.winRate}%</div>
+              <p className="text-xs text-zinc-500 mt-2">
+                +12% este mês
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-400">Estratégias Ativas</CardTitle>
+              <Target className="h-4 w-4 text-amber-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-amber-400">8</div>
+              <p className="text-xs text-zinc-500 mt-2">
+                Todas disponíveis
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-zinc-400">Sessões</CardTitle>
+              <BarChart3 className="h-4 w-4 text-blue-400" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-400">{stats.totalSessions}</div>
+              <p className="text-xs text-zinc-500 mt-2">
+                Comece agora
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Featured Strategies */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-bold text-zinc-100">Estratégias em Destaque</h2>
+            <Link to={createPageUrl("Strategies")}>
+              <Button className="bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-zinc-900 font-semibold">
+                Ver Todas
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            {featuredStrategies.map((strategy, index) => (
+              <Card 
+                key={index}
+                className="group bg-zinc-900/30 border-zinc-800 backdrop-blur-xl hover:bg-zinc-800/50 transition-all duration-500 cursor-pointer overflow-hidden"
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{strategy.icon}</span>
+                        <CardTitle className="text-xl text-zinc-100 group-hover:text-amber-400 transition-colors">
+                          {strategy.name}
+                        </CardTitle>
+                      </div>
+                      <Badge className={`bg-gradient-to-r ${strategy.color} text-white border-0`}>
+                        {strategy.winRate} sucesso
+                      </Badge>
+                    </div>
+                    <Zap className="w-5 h-5 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-zinc-400 text-sm leading-relaxed">
+                    {strategy.description}
+                  </p>
+                  <Link to={createPageUrl("Strategies")} className="block mt-4">
+                    <Button variant="outline" className="w-full border-zinc-700 hover:border-amber-500 hover:text-amber-400">
+                      Usar Estratégia
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-gradient-to-br from-emerald-900/20 to-emerald-950/20 border-emerald-800/30 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-emerald-400 flex items-center gap-2">
+                <Calculator className="w-5 h-5" />
+                Calculadora Rápida
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-zinc-400 mb-4">
+                Use nossa calculadora para análises instantâneas de padrões.
+              </p>
+              <Link to={createPageUrl("Calculator")}>
+                <Button className="bg-emerald-600 hover:bg-emerald-700 w-full">
+                  Abrir Calculadora
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-blue-900/20 to-blue-950/20 border-blue-800/30 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-blue-400 flex items-center gap-2">
+                <Award className="w-5 h-5" />
+                Histórico de Sucesso
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-zinc-400 mb-4">
+                Acompanhe seus resultados e melhore continuamente.
+              </p>
+              <Link to={createPageUrl("Statistics")}>
+                <Button className="bg-blue-600 hover:bg-blue-700 w-full">
+                  Ver Estatísticas
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}

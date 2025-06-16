@@ -1,0 +1,249 @@
+
+import React, { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calculator, Sparkles, Target, Zap } from "lucide-react";
+
+import MirrorNumbersCalculator from "../components/calculators/MirrorNumbersCalculator";
+import SumSubtractionCalculator from "../components/calculators/SumSubtractionCalculator";
+import ZeroNeighborsCalculator from "../components/calculators/ZeroNeighborsCalculator";
+import GreenZeroCalculator from "../components/calculators/GreenZeroCalculator";
+import PullingNumbersCalculator from "../components/calculators/PullingNumbersCalculator";
+import DoubleRepeatCalculator from "../components/calculators/DoubleRepeatCalculator";
+import HorsesCalculator from "../components/calculators/HorsesCalculator";
+import TwinsCalculator from "../components/calculators/TwinsCalculator";
+import ColorSiblingsCalculator from "../components/calculators/ColorSiblingsCalculator";
+import SolitaryCalculator from "../components/calculators/SolitaryCalculator";
+import ColorPatternsCalculator from "../components/calculators/ColorPatternsCalculator";
+import NumberLadderCalculator from "../components/calculators/NumberLadderCalculator";
+import RepeatedNumbersCalculator from "../components/calculators/RepeatedNumbersCalculator";
+import MultipliedNumbersCalculator from "../components/calculators/MultipliedNumbersCalculator";
+import DozensColumnsCalculator from "../components/calculators/DozensColumnsCalculator";
+import HighLowCalculator from "../components/calculators/HighLowCalculator";
+import White14xCalculator from "../components/calculators/White14xCalculator";
+import ThreeSoldiersCalculator from "../components/calculators/ThreeSoldiersCalculator";
+import GreatLeapCalculator from "../components/calculators/GreatLeapCalculator";
+import Method20Calculator from "../components/calculators/Method20Calculator";
+import Method30Calculator from "../components/calculators/Method30Calculator";
+import Elite2xCalculator from "../components/calculators/Elite2xCalculator";
+import QuartaDimensaoCalculator from "../components/calculators/QuartaDimensaoCalculator";
+import Formula5xCalculator from "../components/calculators/Formula5xCalculator";
+import Alpha6Calculator from "../components/calculators/Alpha6Calculator";
+import PadraoBlackCalculator from "../components/calculators/PadraoBlackCalculator";
+import QuadrantesOcultosCalculator from "../components/calculators/QuadrantesOcultosCalculator";
+
+export default function CalculatorPage() {
+  const [selectedStrategy, setSelectedStrategy] = useState("numeros_espelhados");
+  const [lastNumbers, setLastNumbers] = useState("");
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const strategy = urlParams.get('strategy');
+    if (strategy) {
+      setSelectedStrategy(strategy);
+    }
+  }, []);
+
+  const strategies = [
+    { value: "numeros_espelhados", label: "Números Espelhados", icon: "🎯" },
+    { value: "numeros_puxam", label: "Números que Puxam", icon: "🔗" },
+    { value: "somas_subtracoes", label: "Somas e Subtrações", icon: "🧮" },
+    { value: "duplos_repeticao", label: "Duplos Repetição", icon: "🔄" },
+    { value: "vizinhos_zero", label: "Vizinhos do Zero", icon: "🎱" },
+    { value: "zero_verde", label: "Zero Verde", icon: "💚" },
+    { value: "cavalos", label: "Método dos Cavalos", icon: "🐎" },
+    { value: "gemeos", label: "Método dos Gêmeos", icon: "👯" },
+    { value: "irmaos_cores", label: "Irmãos de Cores", icon: "🎨" },
+    { value: "padroes_cores", label: "Padrões de Cores", icon: "⚫🔴" },
+    { value: "solitarios", label: "Estratégia Solitários", icon: "👤" },
+    { value: "escada_numeros", label: "Escada de Números", icon: "📈" },
+    { value: "numeros_repetidos", label: "Números Repetidos", icon: "🔁" },
+    { value: "numeros_multiplicados", label: "Números Multiplicados", icon: "✖️" },
+    { value: "duzias_colunas", label: "Padrões Dúzias/Colunas", icon: "🔢" },
+    { value: "altos_baixos", label: "Padrões Altos/Baixos", icon: "↕️" },
+    { value: "branco_14x", label: "Bônus Branco 14x", icon: "💎" },
+    { value: "tres_soldados", label: "Três Soldados", icon: "🛡️" },
+    { value: "grande_salto", label: "O Grande Salto", icon: "🤸" },
+    { value: "metodo_20", label: "Método dos Números 20", icon: "2️⃣" },
+    { value: "metodo_30", label: "Método dos Números 30", icon: "3️⃣" },
+    { value: "elite_2x", label: "Elite 2X", icon: "✨" },
+    { value: "quarta_dimensao", label: "Quarta Dimensão", icon: "🌌" },
+    { value: "formula_5x", label: "Fórmula 5X", icon: "🧪" },
+    { value: "alpha_6", label: "Alpha 6", icon: "🐺" },
+    { value: "padrao_black", label: "Padrão Black", icon: "⚫" },
+    { value: "quadrantes_ocultos", label: "Quadrantes Ocultos", icon: "🧊" },
+  ];
+
+  const renderCalculator = () => {
+    const props = { lastNumbers, setLastNumbers };
+    
+    switch(selectedStrategy) {
+      case "numeros_espelhados":
+        return <MirrorNumbersCalculator {...props} />;
+      case "somas_subtracoes":
+        return <SumSubtractionCalculator {...props} />;
+      case "vizinhos_zero":
+        return <ZeroNeighborsCalculator {...props} />;
+      case "zero_verde":
+        return <GreenZeroCalculator {...props} />;
+      case "numeros_puxam":
+        return <PullingNumbersCalculator {...props} />;
+      case "duplos_repeticao":
+        return <DoubleRepeatCalculator {...props} />;
+      case "cavalos":
+        return <HorsesCalculator {...props} />;
+      case "gemeos":
+        return <TwinsCalculator {...props} />;
+      case "irmaos_cores":
+        return <ColorSiblingsCalculator {...props} />;
+      case "solitarios":
+        return <SolitaryCalculator {...props} />;
+      case "padroes_cores":
+        return <ColorPatternsCalculator {...props} />;
+      case "escada_numeros":
+        return <NumberLadderCalculator {...props} />;
+      case "numeros_repetidos":
+        return <RepeatedNumbersCalculator {...props} />;
+      case "numeros_multiplicados":
+        return <MultipliedNumbersCalculator {...props} />;
+      case "duzias_colunas":
+        return <DozensColumnsCalculator {...props} />;
+      case "altos_baixos":
+        return <HighLowCalculator {...props} />;
+      case "branco_14x":
+        return <White14xCalculator {...props} />;
+      case "tres_soldados":
+        return <ThreeSoldiersCalculator {...props} />;
+      case "grande_salto":
+        return <GreatLeapCalculator {...props} />;
+      case "metodo_20":
+        return <Method20Calculator {...props} />;
+      case "metodo_30":
+        return <Method30Calculator {...props} />;
+      case "elite_2x":
+        return <Elite2xCalculator {...props} />;
+      case "quarta_dimensao":
+        return <QuartaDimensaoCalculator {...props} />;
+      case "formula_5x":
+        return <Formula5xCalculator {...props} />;
+      case "alpha_6":
+        return <Alpha6Calculator {...props} />;
+      case "padrao_black":
+        return <PadraoBlackCalculator {...props} />;
+      case "quadrantes_ocultos":
+        return <QuadrantesOcultosCalculator {...props} />;
+      default:
+        return (
+          <div className="text-center py-12">
+            <Sparkles className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-zinc-400 mb-2">
+              Selecione uma Estratégia
+            </h3>
+            <p className="text-zinc-500">
+              Escolha uma das estratégias acima para começar a análise.
+            </p>
+          </div>
+        );
+    }
+  };
+
+  const selectedStrategyInfo = strategies.find(s => s.value === selectedStrategy);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Calculator className="w-12 h-12 text-amber-400" />
+          </div>
+          <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text">
+            Calculadora de Estratégias
+          </h1>
+          <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+            Analise padrões e calcule suas próximas jogadas com precisão matemática
+          </p>
+        </div>
+
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+          {/* Controls Column */}
+          <div className="lg:col-span-2 space-y-8">
+            <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl sticky top-6">
+              <CardHeader>
+                <CardTitle className="text-amber-400 flex items-center gap-2">
+                  <Target className="w-5 h-5" />
+                  Selecionar Estratégia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-zinc-300">Estratégia Ativa</label>
+                    <Select value={selectedStrategy} onValueChange={setSelectedStrategy}>
+                      <SelectTrigger className="bg-zinc-800/50 border-zinc-700 text-zinc-100">
+                        <SelectValue placeholder="Escolha uma estratégia" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-zinc-900 border-zinc-700">
+                        {strategies.map((strategy) => (
+                          <SelectItem 
+                            key={strategy.value} 
+                            value={strategy.value}
+                            className="text-zinc-100 focus:bg-zinc-800"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span>{strategy.icon}</span>
+                              {strategy.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-zinc-300">Últimos Números</label>
+                    <Input
+                      placeholder="Ex: 12,23,34,5..."
+                      value={lastNumbers}
+                      onChange={(e) => setLastNumbers(e.target.value)}
+                      className="bg-zinc-800/50 border-zinc-700 text-zinc-100 placeholder:text-zinc-500"
+                    />
+                  </div>
+                </div>
+                
+                {selectedStrategyInfo && (
+                  <div className="mt-4 p-4 bg-zinc-800/30 rounded-lg border border-zinc-700">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{selectedStrategyInfo.icon}</span>
+                      <h3 className="text-lg font-semibold text-zinc-100">{selectedStrategyInfo.label}</h3>
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                        Ativa
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Calculator Column */}
+          <div className="lg:col-span-3">
+            <Card className="bg-zinc-900/30 border-zinc-800 backdrop-blur-xl">
+              <CardHeader>
+                <CardTitle className="text-emerald-400 flex items-center gap-2">
+                  <Zap className="w-5 h-5" />
+                  Análise e Cálculos
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {renderCalculator()}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,66 @@
+{
+  "name": "Strategy",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome da estratégia"
+    },
+    "description": {
+      "type": "string",
+      "description": "Descrição da estratégia"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "numeros_espelhados",
+        "somas_subtracoes",
+        "duplos_repeticao",
+        "vizinhos_zero",
+        "zero_verde",
+        "escada_numeros",
+        "numeros_repetidos",
+        "numeros_multiplicados",
+        "numeros_puxam",
+        "cavalos",
+        "gemeos",
+        "metodo_20",
+        "metodo_30",
+        "irmaos_cores",
+        "terminais",
+        "duzias_colunas",
+        "padroes_cores",
+        "altos_baixos",
+        "solitarios",
+        "tres_soldados",
+        "grande_salto",
+        "branco_14x",
+        "elite_2x",
+        "quarta_dimensao",
+        "formula_5x",
+        "alpha_6",
+        "padrao_black",
+        "quadrantes_ocultos"
+      ],
+      "description": "Tipo da estratégia"
+    },
+    "examples": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Exemplos de números para a estratégia"
+    },
+    "protection_tips": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Dicas de proteção"
+    }
+  },
+  "required": [
+    "name",
+    "type"
+  ]
+}

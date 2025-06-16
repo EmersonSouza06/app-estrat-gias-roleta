@@ -1,0 +1,443 @@
+
+import React, { useState, useEffect } from "react";
+import { Strategy } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Target, ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
+
+export default function Strategies() {
+  const [strategies, setStrategies] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    loadStrategies();
+  }, []);
+
+  const loadStrategies = async () => {
+    const data = await Strategy.list();
+    setStrategies(data);
+  };
+
+  const defaultStrategies = [
+    {
+      id: 1,
+      name: "Números Espelhados",
+      type: "numeros_espelhados",
+      description: "Estratégia baseada em números espelhados como 21,12 / 23,32 / 31,13 / 26,29. Todos esses números são espelhados, a roleta também trabalha encima deles.",
+      examples: ["21,12", "23,32", "31,13", "26,29"],
+      icon: "🎯",
+      color: "from-amber-500 to-yellow-600",
+      difficulty: "Fácil",
+      successRate: "85%"
+    },
+    {
+      id: 2,
+      name: "Somas e Subtrações",
+      type: "somas_subtracoes",
+      description: "Estratégia das somas e subtrações dos números passados. Sempre jogar a favor da roleta e sempre cobrir todos terminal '0'.",
+      examples: ["1+3=4", "5-3=2", "9+2=11"],
+      icon: "🧮",
+      color: "from-blue-500 to-indigo-600",
+      difficulty: "Médio",
+      successRate: "78%"
+    },
+    {
+      id: 3,
+      name: "Duplos em Repetição",
+      type: "duplos_repeticao",
+      description: "Estratégia dos números duplos em repetição como 36,34,16,24. Análise de padrões onde números se formam em sequência.",
+      examples: ["36,34,16", "24,34,16"],
+      icon: "🔄",
+      color: "from-purple-500 to-violet-600",
+      difficulty: "Avançado",
+      successRate: "81%"
+    },
+    {
+      id: 4,
+      name: "Vizinhos do Zero",
+      type: "vizinhos_zero",
+      description: "Estratégia dos vizinhos de '0'. Números como (1,5,8,11,14,23,26,32) são vizinhos do zero na roleta.",
+      examples: ["1,5,8,11", "14,23,26,32"],
+      icon: "🎱",
+      color: "from-emerald-500 to-teal-600",
+      difficulty: "Médio",
+      successRate: "88%"
+    },
+    {
+      id: 5,
+      name: "Zero Verde",
+      type: "zero_verde",
+      description: "Estratégia do ZERO VERDE. Análise de sequência de números para identificar quando o zero está próximo de sair.",
+      examples: ["27,13,34,3,12", "32,23,26"],
+      icon: "💚",
+      color: "from-green-500 to-emerald-600",
+      difficulty: "Expert",
+      successRate: "92%"
+    },
+    {
+      id: 6,
+      name: "Escada de Números",
+      type: "escada_numeros",
+      description: "Estratégia das escadas de número como (1,2,3) / (11,32,23) / (31,12,3). Análise de padrões em sequência.",
+      examples: ["1,2,3", "11,32,23", "31,12,3"],
+      icon: "📈",
+      color: "from-orange-500 to-red-600",
+      difficulty: "Médio",
+      successRate: "75%"
+    },
+    {
+      id: 7,
+      name: "Números Repetidos",
+      type: "numeros_repetidos",
+      description: "Estratégia de números repetidos como (16,36,16,36). Análise de padrões onde números específicos tendem a repetir.",
+      examples: ["16,36,16,36", "15,25,15"],
+      icon: "🔁",
+      color: "from-pink-500 to-rose-600",
+      difficulty: "Fácil",
+      successRate: "83%"
+    },
+    {
+      id: 8,
+      name: "Números Multiplicados",
+      type: "numeros_multiplicados",
+      description: "Estratégia de números multiplicados como (3,6,9) / (2,4,6,8). Baseada em múltiplos de números específicos.",
+      examples: ["3,6,9", "2,4,6,8"],
+      icon: "✖️",
+      color: "from-cyan-500 to-blue-600",
+      difficulty: "Avançado",
+      successRate: "79%"
+    },
+    {
+      id: 9,
+      name: "Números que Puxam Outros",
+      type: "numeros_puxam",
+      description: "Análise detalhada de como cada número 'puxa' outros números específicos, com base em tendências e vizinhança na roleta.",
+      examples: ["10 puxa 12", "9 puxa 31", "1 puxa 36"],
+      icon: "🔗",
+      color: "from-rose-400 to-red-500",
+      difficulty: "Expert",
+      successRate: "90%"
+    },
+    {
+      id: 10,
+      name: "Método dos Cavalos",
+      type: "cavalos",
+      description: "Estratégia baseada nos 'cavalos' (ex: 1-4-7, 2-5-8, 3-6-9). Cavalos se puxam e criam padrões de repetição.",
+      examples: ["1-4-7", "2-5-8", "3-6-9"],
+      icon: "🐎",
+      color: "from-stone-400 to-stone-500",
+      difficulty: "Avançado",
+      successRate: "84%"
+    },
+    {
+      id: 11,
+      name: "Método dos Gêmeos",
+      type: "gemeos",
+      description: "Focado nos números gêmeos (11, 22, 33) e seus vizinhos. Gêmeos puxam seus próprios terminais e vizinhos.",
+      examples: ["11", "22", "33"],
+      icon: "👯",
+      color: "from-sky-400 to-sky-500",
+      difficulty: "Médio",
+      successRate: "86%"
+    },
+    {
+      id: 12,
+      name: "Irmãos de Cores",
+      type: "irmaos_cores",
+      description: "Uma lista específica de números que se puxam com muita frequência e facilidade. Ideal para bater metas rapidamente.",
+      examples: ["8-11-9-12", "10-13-18-21"],
+      icon: "🎨",
+      color: "from-fuchsia-500 to-purple-600",
+      difficulty: "Fácil",
+      successRate: "89%"
+    },
+    {
+      id: 13,
+      name: "Padrões de Cores",
+      type: "padroes_cores",
+      description: "Análise de padrões de cores como alternâncias, repetições e retornos para prever a próxima cor e o green.",
+      examples: ["Vermelho-Preto-Vermelho", "Vermelho-Vermelho-Vermelho"],
+      icon: "⚫🔴",
+      color: "from-slate-400 to-slate-600",
+      difficulty: "Fácil",
+      successRate: "87%"
+    },
+    {
+      id: 14,
+      name: "Padrões de Dúzias/Colunas",
+      type: "duzias_colunas",
+      description: "Identificação de padrões de repetição e sequência em dúzias e colunas, como 1-2-3, 1-2-1, etc.",
+      examples: ["Dúzia 1-2-3", "Coluna 1-1-2-1"],
+      icon: "🔢",
+      color: "from-teal-400 to-emerald-500",
+      difficulty: "Avançado",
+      successRate: "85%"
+    },
+    {
+      id: 15,
+      name: "Estratégia dos Solitários",
+      type: "solitarios",
+      description: "Os números 13 e 14 são 'solitários'. Quando um sai com uma cor, o próximo tende a vir na cor oposta.",
+      examples: ["Saiu 13 Vermelho", "Entrar no Preto"],
+      icon: "👤",
+      color: "from-gray-400 to-gray-500",
+      difficulty: "Fácil",
+      successRate: "95%"
+    },
+    {
+      id: 16,
+      name: "Branco 14x (Bônus)",
+      type: "branco_14x",
+      description: "Estratégia bônus de alto risco e alta recompensa para acertar o branco. Baseada em sequências específicas que puxam o branco.",
+      examples: ["5-8-10-7", "Puxa Branco"],
+      icon: "💎",
+      color: "from-zinc-100 to-zinc-300",
+      difficulty: "Expert",
+      successRate: "Alto Risco"
+    },
+    {
+      id: 17,
+      name: "Três Soldados",
+      type: "tres_soldados",
+      description: "Quando três números sequenciais saem na mesma cor, a estratégia é entrar na cor oposta, prevendo a quebra do padrão.",
+      examples: ["Vermelho-Vermelho-Vermelho", "Entrar no Preto"],
+      icon: "🛡️",
+      color: "from-orange-500 to-red-600",
+      difficulty: "Médio",
+      successRate: "90%"
+    },
+    {
+      id: 18,
+      name: "O Grande Salto",
+      type: "grande_salto",
+      description: "Acontece quando vem um número alto e logo em seguida um número muito baixo, indicando uma aposta na cor oposta.",
+      examples: ["Alto (19-36)", "Baixo (1-18)"],
+      icon: "🤸",
+      color: "from-lime-400 to-green-500",
+      difficulty: "Avançado",
+      successRate: "89%"
+    },
+    {
+      id: 19,
+      name: "Método dos Números 20",
+      type: "metodo_20",
+      description: "Estratégia com 4 gatilhos específicos que, após percebidos, indicam uma entrada em todos os números da casa dos 20.",
+      examples: ["Gatilho pós-5", "Gatilho pós-35"],
+      icon: "2️⃣",
+      color: "from-sky-500 to-blue-600",
+      difficulty: "Expert",
+      successRate: "Alta"
+    },
+    {
+      id: 20,
+      name: "Método dos Números 30",
+      type: "metodo_30",
+      description: "Padrão formado pela ausência e puxada de números específicos para entrar em todos os números da casa dos 30.",
+      examples: ["Ausência na 1ª linha", "22 puxa 30s"],
+      icon: "3️⃣",
+      color: "from-rose-500 to-pink-600",
+      difficulty: "Expert",
+      successRate: "Alta"
+    },
+    {
+      id: 21,
+      name: "Elite 2X",
+      type: "elite_2x",
+      description: "Estratégia baseada nos gatilhos dos terminais 4 e 5 para uma entrada precisa no terminal 2 com vizinhos e proteção.",
+      examples: ["Gatilho: 4, 15", "Entrada: 2, 12, 22, 32"],
+      icon: "✨",
+      color: "from-teal-400 to-cyan-500",
+      difficulty: "Médio",
+      successRate: "86%"
+    },
+    {
+      id: 22,
+      name: "Quarta Dimensão",
+      type: "quarta_dimensao",
+      description: "Utiliza os terminais 1 e 3 como gatilho para buscar uma entrada no terminal 4, combinando vizinhos e proteção do zero.",
+      examples: ["Gatilho: 1, 13", "Entrada: 4, 14, 24, 34"],
+      icon: "🌌",
+      color: "from-indigo-400 to-purple-500",
+      difficulty: "Avançado",
+      successRate: "88%"
+    },
+    {
+      id: 23,
+      name: "Fórmula 5X",
+      type: "formula_5x",
+      description: "Acionada pelos terminais 6 e 8, esta fórmula direciona a aposta para o terminal 5, com cobertura de vizinhos e do zero.",
+      examples: ["Gatilho: 16, 28", "Entrada: 5, 15, 25, 35"],
+      icon: "🧪",
+      color: "from-lime-400 to-yellow-500",
+      difficulty: "Médio",
+      successRate: "87%"
+    },
+    {
+      id: 24,
+      name: "Alpha 6",
+      type: "alpha_6",
+      description: "Estratégia que usa os terminais 2 e 9 como sinal para uma entrada forte no terminal 6, sempre com vizinhos e proteção.",
+      examples: ["Gatilho: 12, 19", "Entrada: 6, 16, 26, 36"],
+      icon: "🐺",
+      color: "from-slate-400 to-gray-500",
+      difficulty: "Avançado",
+      successRate: "85%"
+    },
+    {
+      id: 25,
+      name: "Padrão Black",
+      type: "padrao_black",
+      description: "Um padrão focado nos números 13, 31 e 33. Quando um deles sai, a aposta é feita neles mesmos com cobertura de vizinhos.",
+      examples: ["Gatilho: 13", "Entrada: 13, 31, 33 + vizinhos"],
+      icon: "⚫",
+      color: "from-zinc-700 to-zinc-800",
+      difficulty: "Fácil",
+      successRate: "90%"
+    },
+    {
+      id: 26,
+      name: "Quadrantes Ocultos",
+      type: "quadrantes_ocultos",
+      description: "Estratégia lucrativa que usa a ausência de números para apostar em 4 quadrantes específicos da mesa, usando poucas fichas.",
+      examples: ["Q1: 1,2,4,5", "Q2: 13,14,16,17"],
+      icon: "🧊",
+      color: "from-sky-400 to-blue-500",
+      difficulty: "Expert",
+      successRate: "Alta"
+    }
+  ];
+
+  const allStrategies = [...strategies, ...defaultStrategies.filter(ds => !strategies.some(s => s.type === ds.type))];
+  
+  const filteredStrategies = allStrategies.filter(strategy =>
+    strategy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    strategy.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getDifficultyColor = (difficulty) => {
+    switch(difficulty) {
+      case "Fácil": return "bg-green-500/20 text-green-400 border-green-500/30";
+      case "Médio": return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
+      case "Avançado": return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+      case "Expert": return "bg-red-500/20 text-red-400 border-red-500/30";
+      default: return "bg-zinc-500/20 text-zinc-400 border-zinc-500/30";
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <Target className="w-12 h-12 text-amber-400" />
+          </div>
+          <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text">
+            Estratégias Premium
+          </h1>
+          <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+            Descubra e domine as estratégias mais eficazes para maximizar seus ganhos na roleta
+          </p>
+        </div>
+
+        {/* Search */}
+        <div className="max-w-md mx-auto">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
+            <Input
+              placeholder="Buscar estratégias..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 bg-zinc-900/50 border-zinc-800 text-zinc-100 placeholder:text-zinc-500"
+            />
+          </div>
+        </div>
+
+        {/* Strategies Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredStrategies.map((strategy, index) => (
+            <Card 
+              key={strategy.id || index}
+              className="group bg-zinc-900/30 border-zinc-800 backdrop-blur-xl hover:bg-zinc-800/50 transition-all duration-500 overflow-hidden"
+            >
+              <CardHeader>
+                <div className="flex items-start justify-between mb-3">
+                  <div className="text-3xl">{strategy.icon}</div>
+                  <div className="flex flex-col gap-2">
+                    <Badge className={`${getDifficultyColor(strategy.difficulty)} border text-xs`}>
+                      {strategy.difficulty}
+                    </Badge>
+                    <Badge className={`bg-gradient-to-r ${strategy.color} text-white border-0 text-xs`}>
+                      {strategy.successRate}
+                    </Badge>
+                  </div>
+                </div>
+                <CardTitle className="text-xl text-zinc-100 group-hover:text-amber-400 transition-colors">
+                  {strategy.name}
+                </CardTitle>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p className="text-zinc-400 text-sm leading-relaxed line-clamp-3">
+                  {strategy.description}
+                </p>
+                
+                {strategy.examples && (
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
+                      Exemplos
+                    </h4>
+                    <div className="flex flex-wrap gap-1">
+                      {strategy.examples.slice(0, 3).map((example, idx) => (
+                        <Badge 
+                          key={idx}
+                          variant="outline" 
+                          className="text-xs bg-zinc-800/50 border-zinc-700 text-zinc-300"
+                        >
+                          {example}
+                        </Badge>
+                      ))}
+                      {strategy.examples.length > 3 && (
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs bg-zinc-800/50 border-zinc-700 text-zinc-400"
+                        >
+                          +{strategy.examples.length - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                <Link to={createPageUrl(`Calculator?strategy=${strategy.type}`)} className="block">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 text-zinc-900 font-semibold group-hover:shadow-lg group-hover:shadow-amber-500/20 transition-all"
+                  >
+                    Usar Estratégia
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredStrategies.length === 0 && (
+          <div className="text-center py-12">
+            <Sparkles className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-zinc-400 mb-2">
+              Nenhuma estratégia encontrada
+            </h3>
+            <p className="text-zinc-500">
+              Tente buscar com outros termos ou explore todas as estratégias disponíveis.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

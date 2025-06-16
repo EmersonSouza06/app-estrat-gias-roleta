@@ -1,0 +1,240 @@
+import React, { useState, useEffect } from "react";
+import { NumberHistory } from "@/entities/all";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { History, Plus, Trash2, RotateCcw } from "lucide-react";
+
+export default function HistoryPage() {
+  const [numbers, setNumbers] = useState([]);
+  const [newNumber, setNewNumber] = useState("");
+  const [sessionId, setSessionId] = useState(null);
+
+  useEffect(() => {
+    loadHistory();
+    generateSessionId();
+  }, []);
+
+  const generateSessionId = () => {
+    const id = `session_${Date.now()}`;
+    setSessionId(id);
+  };
+
+  const loadHistory = async () => {
+    const data = await NumberHistory.list("-created_date", 50);
+    setNumbers(data);
+  };
+
+  const addNumber = async () => {
+    if (!newNumber || isNaN(newNumber)) return;
+    
+    const num = parseInt(newNumber);
+    if (num < 0 || num > 36) return;
+
+    const color = getNumberColor(num);
+    
+    await NumberHistory.create({
+      number: num,
+      color: color,
+      session_id: sessionId,
+      spin_order: numbers.length + 1
+    });
+
+    setNewNumber("");
+    loadHistory();
+  };
+
+  const getNumberColor = (num) => {
+    if (num === 0) return "green";
+    const redNumbers = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    return redNumbers.includes(num) ? "red" : "black";
+  };
+
+  const getColorClass = (color) => {
+    switch(color) {
+      case "red": return "bg-red-500/20 text-red-400 border-red-500/30";
+      case "black": return "bg-zinc-500/20 text-zinc-300 border-zinc-500/30";
+      case "green": return "bg-green-500/20 text-green-400 border-green-500/30";
+      default: return "bg-zinc-500/20 text-zinc-300 border-zinc-500/30";
+    }
+  };
+
+  const clearHistory = async () => {
+    // Note: We can only insert records, not delete them
+    // In a real app, you'd have a delete function
+    generateSessionId();
+  };
+
+  const recentNumbers = numbers.slice(0, 10);
+  const numbersString = recentNumbers.map(n => n.number).join(',');
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 p-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-6">
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <History className="w-12 h-12 text-amber-400" />
+          </div>
+          <h1 className="text-4xl font-bold text-transparent bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 bg-clip-text">
+            Histórico de Números
+          </h1>
+          <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
+            Registre os números que saem na roleta para análise de padrões
+          </p>
+        </div>
+
+        {/* Add Number */}
+        <Card className="bg-zinc-900/50 border-zinc-800 backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle className="text-emerald-400 flex items-center gap-2">
+              <Plus className="w-5 h-5" />
+              Adicionar Número
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <Input
+                  type="number"
+                  min="0"
+                  max="36"
+                  placeholder="Digite o número (0-36)"
+                  value={newNumber}
+                  onChange={(e) => setNewNumber(e.target.value)}
+                  className="bg-zinc-800/50 border-zinc-700 text-zinc-100"
+                  onKeyPress={(e) => e.key === 'Enter' && addNumber()}
+                />
+              </div>
+              <Button 
+                onClick={addNumber}
+                className="bg-emerald-600 hover:bg-emerald-700"
+                disabled={!newNumber || isNaN(newNumber)}
+              >
+                Adicionar
+              </Button>
+              <Button 
+                variant="outline"
+                onClick={clearHistory}
+                className="border-zinc-700 hover:border-red-500 hover:text-red-400"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Copy */}
+        {recentNumbers.length > 0 && (
+          <Card className="bg-blue-900/20 border-blue-800/30 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="text-blue-400">Últimos Números (para Calculadora)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="p-3 bg-zinc-900/50 rounded-lg border border-zinc-700">
+                <p className="text-zinc-300 font-mono text-sm break-all">{numbersString}</p>
+              </div>
+              <Button 
+                variant="outline"
+                className="mt-3 border-blue-600 text-blue-400 hover:bg-blue-600/10"
+                onClick={() => navigator.clipboard.writeText(numbersString)}
+              >
+                Copiar para Calculadora
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Numbers Grid */}
+        <Card className="bg-zinc-900/30 border-zinc-800 backdrop-blur-xl">
+          <CardHeader>
+            <CardTitle className="text-zinc-100">
+              Histórico Recente ({numbers.length} números)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {numbers.length > 0 ? (
+              <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 gap-3">
+                {numbers.slice(0, 60).map((entry, index) => (
+                  <div 
+                    key={entry.id || index}
+                    className="relative group"
+                  >
+                    <Badge 
+                      className={`
+                        ${getColorClass(entry.color)} 
+                        w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg 
+                        border-2 hover:scale-110 transition-all duration-200 cursor-pointer
+                        ${index === 0 ? 'ring-2 ring-amber-400 ring-offset-2 ring-offset-zinc-950' : ''}
+                      `}
+                    >
+                      {entry.number}
+                    </Badge>
+                    {index === 0 && (
+                      <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+                        <span className="text-xs text-amber-400 font-semibold">Último</span>
+                      </div>
+                    )}
+                    <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-xs text-zinc-500">#{index + 1}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <History className="w-16 h-16 text-zinc-600 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-zinc-400 mb-2">
+                  Nenhum número registrado
+                </h3>
+                <p className="text-zinc-500">
+                  Comece adicionando os números que saem na roleta.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Statistics */}
+        {numbers.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="bg-red-900/20 border-red-800/30">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-red-400">
+                    {numbers.filter(n => n.color === 'red').length}
+                  </div>
+                  <div className="text-sm text-zinc-400">Números Vermelhos</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-zinc-800/30 border-zinc-700">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-zinc-300">
+                    {numbers.filter(n => n.color === 'black').length}
+                  </div>
+                  <div className="text-sm text-zinc-400">Números Pretos</div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-green-900/20 border-green-800/30">
+              <CardContent className="pt-6">
+                <div className="text-center">
+                  <div className="text-3xl font-bold text-green-400">
+                    {numbers.filter(n => n.color === 'green').length}
+                  </div>
+                  <div className="text-sm text-zinc-400">Zeros Verdes</div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
